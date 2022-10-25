@@ -14,6 +14,7 @@ This script is based on the instructions from the [NixOS Root on
 ZFS](https://openzfs.github.io/openzfs-docs/Getting%20Started/NixOS/Root%20on%20ZFS.html)
 website, with a few deviations and exceptions:
 
+* It creates the partitions in a different (more sane) order;
 * It names the partitions in the GPT table it creates;
 * It uses `/dev/disk/partname` rather than `/dev/disk/by-id/*` or `/dev/disk/by-path/*`;
 * It (currently) does not support disk encryption;
@@ -53,8 +54,8 @@ Feedback is thankfully welcomed on the github issue tracker.
 
 ## Blurb
 
-<sup><sub>Copyright © Mark van Dijk, 2022, The Netherlands.
-This product is licensed under the GPLv3. It comes with ABSOLUTELY NO WARRANTY.
-This is free software, and you are welcome to redistribute it under certain
-conditions; see the LICENSE file for more information.</sub></sup>
+<sup><sub>Copyright © Mark van Dijk, 2022, The Netherlands.  This product is
+licensed under the GPLv3. It comes with ABSOLUTELY NO WARRANTY.  This is free
+software, and you are welcome to redistribute it under certain conditions; see
+the LICENSE file for more information.</sub></sup>
 
