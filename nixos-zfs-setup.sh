@@ -130,9 +130,6 @@ zpool create \
 # Create the boot dataset
 zfs create ${ZFS_BOOT}/${ZFS_ROOT_VOL}
 
-# Create datasets (subvolumes) in the boot dataset
-zfs create -o mountpoint=/boot ${ZFS_BOOT}/${ZFS_ROOT_VOL}/boot
-
 # Create the root dataset
 zfs create -o mountpoint=/     ${ZFS_ROOT}/${ZFS_ROOT_VOL}
 
@@ -143,6 +140,9 @@ zfs create ${ZFS_ROOT}/${ZFS_ROOT_VOL}/root
 zfs create ${ZFS_ROOT}/${ZFS_ROOT_VOL}/usr
 zfs create ${ZFS_ROOT}/${ZFS_ROOT_VOL}/var
 
+# Create datasets (subvolumes) in the boot dataset
+# This comes last because boot order matters
+zfs create -o mountpoint=/boot ${ZFS_BOOT}/${ZFS_ROOT_VOL}/boot
 
 # Create, mount and populate the efi partitions
 i=0
