@@ -16,7 +16,7 @@ website, with a few deviations and exceptions:
 
 * It creates the partitions in a different (more sane) order;
 * It names the partitions in the GPT table it creates;
-* It uses `/dev/disk/partname` rather than `/dev/disk/by-id/*` or `/dev/disk/by-path/*`;
+* It uses `/dev/disk/by-partname` rather than `/dev/disk/by-id/*` or `/dev/disk/by-path/*`;
 * It (currently) does not support disk encryption;
 * It always allocates (but currently does not create and use) a swap partition.
 
@@ -25,20 +25,23 @@ website, with a few deviations and exceptions:
 1.  Boot the NixOS liveCD
 2.  If not using DHCP, set up networking inside the live environment.
 3.  Open a terminal and login as root: `sudo login -f root`
-4.  Set a password (`passwd`).
+4.  Set a password: `passwd`
 5.  Restart sshd: `systemctl restart sshd.service`
-6.  Login to the shell, `git clone` this repository
-7.  Edit the variables in `nixos-zfs-setup.sh`
-8.  Optional: wipe existing partitions from the disk with `wipefs -af /dev/...`
-9.  Run the script: `bash ./nixos-zfs-setup.sh` and hope for the best.
+6.  ssh into the shell as root: `ssh root@i.p.ad.dr`
+7.  `git clone` this repository
+8.  Edit the variables in `nixos-zfs-setup.sh`
+9.  Optional: wipe existing partitions from the disk with `wipefs -af /dev/...`
+10.  Run the script: `bash ./nixos-zfs-setup.sh` and....
+11.  Hope for the best!
 
 When the script has finished, it will tell you some commands to run next. Do
-this by hand. Note down the instructions first, because the first command will
-output a lot of text.
+this by hand. It's best to open another shell and run those commands in there,
+because the first command will output a lot of text and you might lose the
+other commands. Eventually I'll get around to improve this.
 
 ## Tested with:
 
-So far only with qemu. I plan to test it on hardware when I have a chance to.
+Qemu and vmware guests. I plan to test it on hardware when I have a chance to.
 This may take a long time because I have plenty of other NixOS related stuff to
 figure out first.
 
@@ -46,6 +49,7 @@ figure out first.
 
 * Properly support/configure/enable the swap partition;
 * Add encryption.
+* Add support for impermanence. Read: [Erase Your Darlings](https://grahamc.com/blog/erase-your-darlings).
 
 
 ## Feedback
