@@ -193,8 +193,14 @@ nixos-generate-config --root /mnt
 
 sed -i -e "s|./hardware-configuration.nix|& ./zfs.nix|" ${MAINCFG}
 
+if (( $IMPERMANENCE ))
+then
+	echo '{ config, lib, pkgs, ... }:'
+else
+	echo '{ config, pkgs, ... }:'
+fi | tee -a ${ZFSCFG}
+
 tee -a ${ZFSCFG} <<EOF
-{ config, pkgs, ... }:
 
 {
   boot.supportedFilesystems = [ "zfs" ];
