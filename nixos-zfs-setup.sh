@@ -138,8 +138,8 @@ zfs create -o mountpoint=/     ${ZFS_ROOT}/${ZFS_ROOT_VOL}
 
 # Create datasets (subvolumes) in the root dataset
 zfs create ${ZFS_ROOT}/${ZFS_ROOT_VOL}/home
+zfs create -o atime=off ${ZFS_ROOT}/${ZFS_ROOT_VOL}/nix
 zfs create ${ZFS_ROOT}/${ZFS_ROOT_VOL}/root
-zfs create ${ZFS_ROOT}/${ZFS_ROOT_VOL}/nix
 zfs create ${ZFS_ROOT}/${ZFS_ROOT_VOL}/usr
 zfs create ${ZFS_ROOT}/${ZFS_ROOT_VOL}/var
 
@@ -245,7 +245,7 @@ EOF
 
 set +x
 
-echo "Now do this:"
+echo "Now do this (preferably in another shell, this will put out a lot of text):"
 echo "nixos-install -v --show-trace --no-root-passwd --root /mnt"
 echo "umount -Rl /mnt"
 echo "zpool export -a"
