@@ -1,4 +1,4 @@
-# vim: ts=4 sw=4 ai et si sta fdm=marker
+# vim: ts=4 sw=4 ai noet si sta fdm=marker
 #
 # Edit the variables below. Then run this by issuing:
 # `bash ./nixos-zfs-setup.sh`
@@ -103,6 +103,7 @@ do
 	sgdisk -n5:0:0 -t5:BF00 -c 5:${PART_ROOT}${i} ${d}
 
 	partprobe ${d}
+	sleep 2
 	mkswap -L ${PART_SWAP}fs${i} ${d}4
 	swapon ${d}4
 	(( i++ )) || true
