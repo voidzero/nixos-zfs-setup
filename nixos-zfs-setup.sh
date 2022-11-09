@@ -100,11 +100,11 @@ do
 	sgdisk -n3:0:+4G -t3:BE00 -c 3:${PART_BOOT}${i} ${d}
 	sgdisk -n4:0:+${SWAPSIZE} -t4:8200 -c 4:${PART_SWAP}${i} ${d}
 	SWAPDEVS+=(${d}4)
-	mkswap -L ${PART_SWAP}fs${i} ${d}4
-	swapon ${d}4
 	sgdisk -n5:0:0 -t5:BF00 -c 5:${PART_ROOT}${i} ${d}
 
 	partprobe ${d}
+	mkswap -L ${PART_SWAP}fs${i} ${d}4
+	swapon ${d}4
 	(( i++ )) || true
 done
 unset i d
