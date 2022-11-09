@@ -1,3 +1,4 @@
+# vim: ts=4 sw=4 ai et si sta fdm=marker
 #
 # Edit the variables below. Then run this by issuing:
 # `bash ./nixos-zfs-setup.sh`
@@ -65,6 +66,11 @@ ROOTPW=''
 # End of settings.
 
 set +x
+
+MAINCFG="/mnt/etc/nixos/configuration.nix"
+HWCFG="/mnt/etc/nixos/hardware-configuration.nix"
+ZFSCFG="/mnt/etc/nixos/zfs.nix"
+
 if [[ ${#DISK[*]} -eq 1 ]] && [[ -n ${ZFS_BOOT_VDEV} || -n ${ZFS_ROOT_VDEV} ]]
 then
 	echo "Error: You have only specified one disk. ZFS_BOOT_VDEV and ZFS_ROOT_DEV must be unset or empty." >&2
@@ -169,9 +175,9 @@ chattr +i /mnt/etc/zfs/zpool.cache
 # Generate and edit configs
 nixos-generate-config --root /mnt
 
-sed -i -e "s|./hardware-configuration.nix|& ./zfs.nix|" /mnt/etc/nixos/configuration.nix
+sed -i -e "s|./hardware-configuration.nix|& ./zfs.nix|" ${MAINCFG}
 
-tee -a /mnt/etc/nixos/zfs.nix <<EOF
+tee -a ${ZFSCFG} <<EOF
 { config, pkgs, ... }:
 
 {
@@ -182,13 +188,13 @@ tee -a /mnt/etc/nixos/zfs.nix <<EOF
 EOF
 
 # Remove boot.loader stuff, it's to be added to zfs.nix
-sed -i '/boot.loader/d' /mnt/etc/nixos/configuration.nix
+sed -i '/boot.loader/d' ${MAINCFG}
 
 # Disable xserver. Comment them without a space after the pound sign so we can
 # recognize them when we edit the config later
-sed -i -e 's;^  \(services.xserver\);  #\1;' /mnt/etc/nixos/configuration.nix
+sed -i -e 's;^  \(services.xserver\);  #\1;' ${MAINCFG}
 
-tee -a /mnt/etc/nixos/zfs.nix <<-'EOF'
+tee -a ${ZFSCFG} <<-'EOF'
   boot.loader.efi.efiSysMountPoint = "/boot/efi";
   boot.loader.efi.canTouchEfiVariables = false;
   boot.loader.generationsDir.copyKernels = true;
@@ -220,24 +226,23 @@ tee -a /mnt/etc/nixos/zfs.nix <<-'EOF'
 EOF
 
 for d in ${DISK}; do
-  printf "    \"${d}\"\n" >>/mnt/etc/nixos/zfs.nix
+  printf "    \"${d}\"\n" >>${ZFSCFG}
 done
 
-tee -a /mnt/etc/nixos/zfs.nix <<EOF
+tee -a ${ZFSCFG} <<EOF
   ];
 
 EOF
 
-sed -i 's|fsType = "zfs";|fsType = "zfs"; options = [ "zfsutil" "X-mount.mkdir" ];|g' \
-/mnt/etc/nixos/hardware-configuration.nix
+sed -i 's|fsType = "zfs";|fsType = "zfs"; options = [ "zfsutil" "X-mount.mkdir" ];|g' ${HWCFG}
 
-ADDNR=$(awk '/^  fileSystems."\/" =$/ {print NR+3}' /mnt/etc/nixos/hardware-configuration.nix)
-sed -i "${ADDNR}i"' \      neededForBoot = true;' /mnt/etc/nixos/hardware-configuration.nix
+ADDNR=$(awk '/^  fileSystems."\/" =$/ {print NR+3}' ${HWCFG})
+sed -i "${ADDNR}i"' \      neededForBoot = true;' ${HWCFG}
 
-ADDNR=$(awk '/^  fileSystems."\/boot" =$/ {print NR+3}' /mnt/etc/nixos/hardware-configuration.nix)
-sed -i "${ADDNR}i"' \      neededForBoot = true;' /mnt/etc/nixos/hardware-configuration.nix
+ADDNR=$(awk '/^  fileSystems."\/boot" =$/ {print NR+3}' ${HWCFG})
+sed -i "${ADDNR}i"' \      neededForBoot = true;' ${HWCFG}
 
-tee -a /mnt/etc/nixos/zfs.nix <<EOF
+tee -a ${ZFSCFG} <<EOF
 users.users.root.initialHashedPassword = "${ROOTPW}";
 
 }
