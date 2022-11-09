@@ -276,15 +276,15 @@ sed -i "${ADDNR}i"' \      neededForBoot = true;' ${HWCFG}
 ADDNR=$(awk '/^  fileSystems."\/boot" =$/ {print NR+3}' ${HWCFG})
 sed -i "${ADDNR}i"' \      neededForBoot = true;' ${HWCFG}
 
-ADDNR=$(awk '/^  swapDevices =/ {print NR-1}' ${HWCFG})
-TMPFILE=$(mktemp)
-head -n ${ADDNR} ${HWCFG} > ${TMPFILE}
-
-# Of course we want to keep the config files after the initial reboot. So,
-# create a bind mount from /keep/etc/nixos -> /etc/nixos here, and copy the
-# files and actually mount the bind later
 if (( $IMPERMANENCE ))
 then
+	# Of course we want to keep the config files after the initial
+	# reboot. So, create a bind mount from /keep/etc/nixos -> /etc/nixos
+	# here, and copy the files and actually mount the bind later
+	ADDNR=$(awk '/^  swapDevices =/ {print NR-1}' ${HWCFG})
+	TMPFILE=$(mktemp)
+	head -n ${ADDNR} ${HWCFG} > ${TMPFILE}
+
 	tee -a ${TMPFILE} <<EOF
   fileSystems."/etc/nixos" =
     { device = "/keep/etc/nixos";
@@ -293,20 +293,13 @@ then
     };
 
 EOF
+
+	ADDNR=$(awk '/^  swapDevices =/ {print NR}' ${HWCFG})
+	tail -n +${ADDNR} ${HWCFG} >> ${TMPFILE}
+	cat ${TMPFILE} > ${HWCFG}
+	rm -f ${TMPFILE}
+	unset ADDNR TMPFILE
 fi
-
-echo "  swapDevices = [" | tee -a ${TMPFILE}
-for i in ${SWAPDEVS}
-do
-	echo "    \"${i}\""
-done | tee -a $TMPFILE
-echo "  ]" | tee -a $TMPFILE
-
-ADDNR=$(awk '/^  swapDevices =/ {print NR+1}' ${HWCFG})
-tail -n +${ADDNR} ${HWCFG} >> ${TMPFILE}
-cat ${TMPFILE} > ${HWCFG}
-rm -f ${TMPFILE}
-unset ADDNR TMPFILE
 
 tee -a ${ZFSCFG} <<EOF
 users.users.root.initialHashedPassword = "${ROOTPW}";
@@ -314,12 +307,12 @@ users.users.root.initialHashedPassword = "${ROOTPW}";
 }
 EOF
 
-# This is where we copy the config files and mount the bind
 if (( $IMPERMANENCE ))
 then
-    install -d -m 0755 /mnt/keep/etc
-    cp -a /mnt/etc/nixos /mnt/keep/etc/
-    mount -o bind /mnt/keep/etc/nixos /mnt/etc/nixos
+	# This is where we copy the config files and mount the bind
+	install -d -m 0755 /mnt/keep/etc
+	cp -a /mnt/etc/nixos /mnt/keep/etc/
+	mount -o bind /mnt/keep/etc/nixos /mnt/etc/nixos
 fi
 
 set +x
