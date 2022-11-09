@@ -278,6 +278,9 @@ ADDNR=$(awk '/^  swapDevices =/ {print NR-1}' ${HWCFG})
 TMPFILE=$(mktemp)
 head -n ${ADDNR} ${HWCFG} > ${TMPFILE}
 
+# Of course we want to keep the config files after the initial reboot. So,
+# create a bind mount from /keep/etc/nixos -> /etc/nixos here, and copy the
+# files and actually mount the bind later
 if (( $IMPERMANENCE ))
 then
 	tee -a ${TMPFILE} <<EOF
@@ -308,6 +311,14 @@ users.users.root.initialHashedPassword = "${ROOTPW}";
 
 }
 EOF
+
+# This is where we copy the config files and mount the bind
+if (( $IMPERMANENCE ))
+then
+    install -d -m 0755 /mnt/keep/etc
+    cp -a /mnt/etc/nixos /mnt/keep/etc/
+    mount -o bind /mnt/keep/etc/nixos /mnt/etc/nixos
+fi
 
 set +x
 
