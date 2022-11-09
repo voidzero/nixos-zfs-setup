@@ -19,7 +19,7 @@ website, with a few deviations and exceptions:
 * It uses `/dev/disk/by-partname` rather than `/dev/disk/by-id/*` or `/dev/disk/by-path/*`;
 * It (currently) does not support disk encryption;
 * It supports impermanence. Read: [Erase Your Darlings](https://grahamc.com/blog/erase-your-darlings);
-* It always allocates (but currently does not create and use) a swap partition.
+* It always allocates one or more swap partitions.
 
 ## How to use this script
 
@@ -48,7 +48,6 @@ figure out first.
 
 ## Todo
 
-* Properly support/configure/enable the swap partition;
 * Add encryption.
 
 ## Feedback

@@ -91,7 +91,7 @@ fi
 
 set -x
 
-i=0
+i=0 SWAPDEVS=()
 for d in ${DISK}
 do
 	sgdisk --zap-all ${d}
@@ -99,6 +99,7 @@ do
 	sgdisk -n2:1M:+1G -t2:EF00 -c 2:${PART_EFI}${i} ${d}
 	sgdisk -n3:0:+4G -t3:BE00 -c 3:${PART_BOOT}${i} ${d}
 	sgdisk -n4:0:+${SWAPSIZE} -t4:8200 -c 4:${PART_SWAP}${i} ${d}
+	SWAPDEV+=(${d}4)
 	sgdisk -n5:0:0 -t5:BF00 -c 5:${PART_ROOT}${i} ${d}
 
 	partprobe ${d}
@@ -289,7 +290,14 @@ then
 EOF
 fi
 
-ADDNR=$(awk '/^  swapDevices =/ {print NR}' ${HWCFG})
+echo "  swapDevices = [" | tee -a ${TMPFILE}
+for i in ${SWAPDEVS}
+do
+	echo "    \"${i}\""
+done | tee -a $TMPFILE
+echo "  ]" | tee -a $TMPFILE
+
+ADDNR=$(awk '/^  swapDevices =/ {print NR+1}' ${HWCFG})
 tail -n +${ADDNR} ${HWCFG} >> ${TMPFILE}
 cat ${TMPFILE} > ${HWCFG}
 rm -f ${TMPFILE}
