@@ -92,7 +92,7 @@ fi
 set -x
 
 i=0 SWAPDEVS=()
-for d in ${DISK}
+for d in ${DISK[*]}
 do
 	sgdisk --zap-all ${d}
 	sgdisk -a1 -n1:0:+100K -t1:EF02 -c 1:${PART_MBR}${i} ${d}
@@ -171,7 +171,7 @@ fi
 
 # Create, mount and populate the efi partitions
 i=0
-for d in ${DISK}
+for d in ${DISK[*]}
 do
 	mkfs.vfat -n EFI /dev/disk/by-partlabel/${PART_EFI}${i}
 	mkdir -p /mnt/boot/efis/${PART_EFI}${i}
@@ -259,7 +259,7 @@ tee -a ${ZFSCFG} <<-'EOF'
   boot.loader.grub.devices = [
 EOF
 
-for d in ${DISK}; do
+for d in ${DISK[*]}; do
   printf "    \"${d}\"\n" >>${ZFSCFG}
 done
 
