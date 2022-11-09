@@ -63,6 +63,12 @@ ZFS_ROOT_VOL="nixos"
 # Generate a root password with mkpasswd -m SHA-512
 ROOTPW=''
 
+# Do you want impermanence? In that case set this to 1. Not yes, not hai, 1.
+IMPERMANENCE=0
+
+# If IMPERMANENCE is 1, this will be the name of the empty snapshots
+EMPTYSNAP="SYSINIT"
+
 # End of settings.
 
 set +x
@@ -141,6 +147,7 @@ zfs create -o mountpoint=/     ${ZFS_ROOT}/${ZFS_ROOT_VOL}
 
 # Create datasets (subvolumes) in the root dataset
 zfs create ${ZFS_ROOT}/${ZFS_ROOT_VOL}/home
+(( $IMPERMANENCE )) && zfs create ${ZFS_ROOT}/${ZFS_ROOT_VOL}/keep || true
 zfs create -o atime=off ${ZFS_ROOT}/${ZFS_ROOT_VOL}/nix
 zfs create ${ZFS_ROOT}/${ZFS_ROOT_VOL}/root
 zfs create ${ZFS_ROOT}/${ZFS_ROOT_VOL}/usr
@@ -149,6 +156,15 @@ zfs create ${ZFS_ROOT}/${ZFS_ROOT_VOL}/var
 # Create datasets (subvolumes) in the boot dataset
 # This comes last because boot order matters
 zfs create -o mountpoint=/boot ${ZFS_BOOT}/${ZFS_ROOT_VOL}/boot
+
+# Make empty snapshots of impermanent volumes
+if (( $IMPERMANENCE ))
+then
+	for i in "" /usr /var
+	do
+		zfs snapshot ${ZFS_ROOT}/${ZFS_ROOT_VOL}${i}@${EMPTYSNAP}
+	done
+fi
 
 # Create, mount and populate the efi partitions
 i=0
@@ -186,6 +202,15 @@ tee -a ${ZFSCFG} <<EOF
   boot.kernelPackages = config.boot.zfs.package.latestCompatibleLinuxPackages;
   boot.zfs.devNodes = "/dev/disk/by-partlabel";
 EOF
+
+if (( $IMPERMANENCE ))
+then
+	tee -a ${ZFSCFG} <<EOF
+  boot.initrd.postDeviceCommands = lib.mkAfter ''
+    zfs rollback -r ${ZFS_ROOT}/${ZFS_ROOT_VOL}@${EMPTYSNAP}
+  '';
+EOF
+fi
 
 # Remove boot.loader stuff, it's to be added to zfs.nix
 sed -i '/boot.loader/d' ${MAINCFG}
@@ -241,6 +266,28 @@ sed -i "${ADDNR}i"' \      neededForBoot = true;' ${HWCFG}
 
 ADDNR=$(awk '/^  fileSystems."\/boot" =$/ {print NR+3}' ${HWCFG})
 sed -i "${ADDNR}i"' \      neededForBoot = true;' ${HWCFG}
+
+ADDNR=$(awk '/^  swapDevices =/ {print NR-1}' ${HWCFG})
+TMPFILE=$(mktemp)
+head -n ${ADDNR} ${HWCFG} > ${TMPFILE}
+
+if (( $IMPERMANENCE ))
+then
+	tee -a ${TMPFILE} <<EOF
+  fileSystems."/etc/nixos" =
+    { device = "/keep/etc/nixos";
+      fsType = "none";
+      options = [ "bind" ];
+    };
+
+EOF
+fi
+
+ADDNR=$(awk '/^  swapDevices =/ {print NR}' ${HWCFG})
+tail -n +${ADDNR} ${HWCFG} >> ${TMPFILE}
+cat ${TMPFILE} > ${HWCFG}
+rm -f ${TMPFILE}
+unset ADDNR TMPFILE
 
 tee -a ${ZFSCFG} <<EOF
 users.users.root.initialHashedPassword = "${ROOTPW}";

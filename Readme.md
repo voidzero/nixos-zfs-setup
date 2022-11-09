@@ -18,6 +18,7 @@ website, with a few deviations and exceptions:
 * It names the partitions in the GPT table it creates;
 * It uses `/dev/disk/by-partname` rather than `/dev/disk/by-id/*` or `/dev/disk/by-path/*`;
 * It (currently) does not support disk encryption;
+* It supports impermanence. Read: [Erase Your Darlings](https://grahamc.com/blog/erase-your-darlings);
 * It always allocates (but currently does not create and use) a swap partition.
 
 ## How to use this script
@@ -49,8 +50,6 @@ figure out first.
 
 * Properly support/configure/enable the swap partition;
 * Add encryption.
-* Add support for impermanence. Read: [Erase Your Darlings](https://grahamc.com/blog/erase-your-darlings).
-
 
 ## Feedback
 
