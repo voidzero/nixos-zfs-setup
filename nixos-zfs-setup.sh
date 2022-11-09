@@ -99,7 +99,9 @@ do
 	sgdisk -n2:1M:+1G -t2:EF00 -c 2:${PART_EFI}${i} ${d}
 	sgdisk -n3:0:+4G -t3:BE00 -c 3:${PART_BOOT}${i} ${d}
 	sgdisk -n4:0:+${SWAPSIZE} -t4:8200 -c 4:${PART_SWAP}${i} ${d}
-	SWAPDEV+=(${d}4)
+	SWAPDEVS+=(${d}4)
+	mkswap -L ${PART_SWAP}fs${i} ${d}4
+	swapon ${d}4
 	sgdisk -n5:0:0 -t5:BF00 -c 5:${PART_ROOT}${i} ${d}
 
 	partprobe ${d}
@@ -326,6 +328,7 @@ echo "Now do this (preferably in another shell, this will put out a lot of text)
 echo "nixos-install -v --show-trace --no-root-passwd --root /mnt"
 echo "umount -Rl /mnt"
 echo "zpool export -a"
+echo "swapoff -a"
 echo "reboot"
 echo "Make note of these instructions because the nixos-install command will output a lot of text."
 
