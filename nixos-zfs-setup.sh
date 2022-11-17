@@ -104,8 +104,8 @@ do
 
 	partprobe ${d}
 	sleep 2
-	mkswap -L ${PART_SWAP}fs${i} ${d}4
-	swapon ${d}4
+	mkswap -L ${PART_SWAP}fs${i} /dev/disk/by-partlabel/${PART_SWAP}${i}
+	swapon /dev/disk/by-partlabel/${PART_SWAP}${i}
 	(( i++ )) || true
 done
 unset i d
